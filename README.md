@@ -11,7 +11,7 @@ Bi-Sheng-C AutoGen 是一个使用大模型自动生成包含 Bi-Sheng-C 语言�
 
 目前仅支持 Linux 环境（支持 WSL）。
 
-1. Bi-Sheng-C 编译器配置（运行本项目目前不需要配置 clang，但后续版本需要）
+### 1. Bi-Sheng-C 编译器配置（运行本项目目前不需要配置 clang，但后续版本需要）
 
 ``` shell
 git clone git@gitee.com:bisheng_c_language_dep/bi-sheng-c-release.git
@@ -30,7 +30,7 @@ InstalledDir: /path/to/bi-sheng-c-release/X86/llvm_15.0.4_X86_BSC/bin
 如遇到问题，可参考[官方文档](https://gitee.com/bisheng_c_language_dep/bi-sheng-c-release)
 
 
-2. Deepseek-API-Key 配置
+### 2. Deepseek-API-Key 配置
 
 我目前使用了 DeepseekAPIKey，需要输入如下命令将 APIKey 写入系统环境变量：
 
