@@ -1,0 +1,7 @@
+
+.vscode
+*[0-9]*.md
+*.c
+*.cbs
+*.pyc
+a.out
