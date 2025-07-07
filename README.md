@@ -82,7 +82,7 @@ python main.py generate --method random
 * 还可以通过 `--c_output` 和 `--bsc_output` 指定输出文件的路径，例如：
 
 ```  py
-python main.py generate --method example --c_output IamHere.c --Here/IamHere.cbs
+python main.py generate --method example --c_output IamHere.c --bsc_output Here/IamHere.cbs
 ```
 
 ### 翻译代码
