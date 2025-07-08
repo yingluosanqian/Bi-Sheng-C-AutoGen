@@ -1,7 +1,11 @@
 
 .vscode
 *[0-9]*.md
+*.h
 *.c
+*.txt
 *.cbs
 *.pyc
 a.out
+*.zip
+c_dataset
