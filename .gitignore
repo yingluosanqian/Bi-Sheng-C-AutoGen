@@ -9,3 +9,6 @@
 a.out
 *.zip
 c_dataset
+*.json
+c\_[0-9]*
+cbs\_[0-9]*
