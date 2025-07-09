@@ -6,7 +6,6 @@ import subprocess
 
 def validate(
   dir: Path,
-  delete_failed_files: bool = True,
 ):
   c_files = list(dir.glob("c_*.c"))
   cbs_files = list(dir.glob("cbs_*.cbs"))
@@ -21,44 +20,67 @@ def validate(
   for id in paired_ids:
     c_file = c_dict[id]
     cbs_file = cbs_dict[id]
+    print("Processing pair:", id)
 
     # 编译 c 文件
     try:
+      timeout = 5
       c_exe = Path('binary_temp') / f"c_{id}"
       if not c_exe.parent.exists():
         c_exe.parent.mkdir(parents=True, exist_ok=True)
-      subprocess.run(["clang", c_file, "-o", c_exe], check=True)
+      subprocess.run(["clang", c_file, "-o", c_exe], check=True, timeout=timeout)
       c_out = subprocess.run([c_exe], capture_output=True,
-                            text=True, check=True).stdout
+                text=True, check=True, timeout=timeout).stdout
 
       # 编译 cbs 文件（假设 cbs 文件可用 clang 编译）
       cbs_exe = Path('binary_temp') / f"cbs_{id}"
       if not cbs_exe.parent.exists():
         cbs_exe.parent.mkdir(parents=True, exist_ok=True)
-      subprocess.run(["clang", cbs_file, "-o", cbs_exe], check=True)
+      clang_args = [
+        "-I/opt/compiler/llvm-project/libcbs/src/string",
+        "-I/opt/compiler/llvm-project/libcbs/src/hash",
+        "-I/opt/compiler/llvm-project/libcbs/src/raw_vec",
+        "-I/opt/compiler/llvm-project/libcbs/src/cell",
+        "-I/opt/compiler/llvm-project/libcbs/src/string",
+        "-I/opt/compiler/llvm-project/libcbs/src/raw_table",
+        "-I/opt/compiler/llvm-project/libcbs/src/vec",
+        "-I/opt/compiler/llvm-project/libcbs/src/map",
+        "-I/opt/compiler/llvm-project/libcbs/src/rc",
+        "-I/opt/compiler/llvm-project/libcbs/src/result",
+        "-I/opt/compiler/llvm-project/libcbs/src/list",
+        "-I/opt/compiler/llvm-project/libcbs/src/option",
+        "-I/opt/compiler/llvm-project/libcbs/src/bishengc_safety",
+        "-I/opt/compiler/llvm-project/libcbs/src/scheduler",
+      ]
+      subprocess.run(["clang", cbs_file, "-o", cbs_exe, *clang_args], check=True, timeout=timeout)
       cbs_out = subprocess.run(
-        [cbs_exe], capture_output=True, text=True, check=True).stdout
+        [cbs_exe], capture_output=True, text=True, check=True, timeout=timeout).stdout
 
       if c_out == cbs_out:
         print(f"Pair {id}: Output matches.")
+        dst_dir = Path("passed_programs") / c_file.parent.relative_to("programs")
+        dst_dir.mkdir(parents=True, exist_ok=True)
+        dst_c = dst_dir / c_file.name
+        dst_cbs = dst_dir / cbs_file.name
+        dst_c.write_bytes(c_file.read_bytes())
+        dst_cbs.write_bytes(cbs_file.read_bytes())
         success_count += 1
       else:
         raise ValueError(
           f"Output mismatch for pair {id}:\nC Output:\n{c_out}\nCBS Output:\n{cbs_out}")
     except Exception as e:
-      print(f"Error processing pair {id}.")
-      if delete_failed_files:
-        print(f"Deleting failed files: {c_file}, {cbs_file}")
-        c_file.unlink(missing_ok=True)
-        cbs_file.unlink(missing_ok=True)
+      print(f"Error processing pair {id}: {e}")
+      # if delete_failed_files:
+      #   print(f"Deleting failed files: {c_file}, {cbs_file}")
+      #   c_file.unlink(missing_ok=True)
+      #   cbs_file.unlink(missing_ok=True)
   print(f"Total pairs succeed: {success_count}")
 
 
 def main():
-  # validate(
-  #   dir=Path('programs/0_成员函数')
-  # )
-  validate(dir=Path('programs/1_泛型'))
+  from const import lang_sub_ft
+  for sub_ft in lang_sub_ft:
+    validate(dir=Path('programs') / sub_ft)
 
 
 if __name__ == "__main__":

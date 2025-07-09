@@ -5,7 +5,10 @@ from dpsk_llm import ask_llm
 from pathlib import Path
 import random
 import re
+import os
 import json
+from multiprocessing import Process, Queue
+from tqdm import tqdm
 
 
 def parse_args():
@@ -20,6 +23,9 @@ def parse_args():
   parser_generate.add_argument(
     '--amount', choices=['example', 'many', 'all'], default='random',
     help="Choose 'random' to randomly select a built-in program description, or 'example' to use a specific example feature documentation."
+  )
+  parser_generate.add_argument(
+    '--dir', default=None,
   )
   parser_generate.add_argument(
     '--input', type=str, default=None,
@@ -38,16 +44,32 @@ def parse_args():
   return parser.parse_args()
 
 
-def generate_many(
-  programs_desc: Path,
-):
-  for idx, program_desc in enumerate(programs_desc):
+def generate_worker(input_q: Queue, output_q: Queue):
+  for idx, dir_name, program_desc in iter(input_q.get, None):
     generate(
-      c_output=Path(f'programs/1_泛型/c_{idx}.c'),
-      bsc_output=Path(f'programs/1_泛型/cbs_{idx}.cbs'),
-      doc=Path('docs/1_泛型.md'),
+      c_output=Path(f'programs/{dir_name}/c_{idx}.c'),
+      bsc_output=Path(f'programs/{dir_name}/cbs_{idx}.cbs'),
+      doc=Path(f'docs/{dir_name}.md'),
       program_description=program_desc,
     )
+    output_q.put((idx))
+
+
+def generate_many(
+  dir_name: str,
+  programs_desc: list,
+  worker_count=os.cpu_count(),
+):
+  task_queue = Queue()
+  done_queue = Queue()
+  for _ in range(worker_count):
+    Process(target=generate_worker, args=(task_queue, done_queue)).start()
+  for idx, program_desc in enumerate(programs_desc):
+    task_queue.put((idx, dir_name, program_desc))
+  for _ in range(worker_count):
+    task_queue.put(None)
+  for _ in tqdm(range(len(programs_desc)), desc=f'Generating for {dir_name}'):
+    _ = done_queue.get()
 
 
 def generate(
@@ -57,7 +79,6 @@ def generate(
   doc: Path,
   program_description: str,
 ):
-  print("Generating both C and Bisheng-C code...")
   with doc.open("r", encoding="utf-8") as f:
     feature_content = f.read()
   feature_name = doc.name
@@ -100,7 +121,8 @@ def generate(
   - Had better to put a '\n' at the end of the output of C code and Bisheng-C code.
   - The member function of an object does not need to explicitly pass the object's own reference as the first parameter, but this parameter must be named this. For example:
     'bool struct CircularBuffer<T>::pop(struct CircularBuffer<T> *this, T *item)' When calling it, you can simply use `int_buffer.pop(&val)` instead of `int_buffer.pop(&int_buffer, &val)`.
-
+  - Bi-Sheng-C has added some header files with the .hbs extension, but do not rename the original C header files to .hbs.
+  - There is no bool type in C, so you can use int instead. In Bisheng-C, you can use _Bool type.
   {one_shot_example}
   """
 
@@ -130,8 +152,8 @@ def generate(
     f.write("/*\n" + feature_name + "\n" + program_description +
             '\n*/\n' + response['bisheng_c_code'])
 
-  print(
-    f"Success, saved C code to {c_output}, Bisheng-C code to {bsc_output}.")
+  # print(
+  #   f"Success, saved C code to {c_output}, Bisheng-C code to {bsc_output}.")
 
 
 def translate(
@@ -147,22 +169,30 @@ def main():
 
   if args.mode == 'generate':
     if args.amount == 'many':
-      programs_desc = Path('program_desc/1_泛型.json')
+      if args.dir is None:
+        raise ValueError("When amount is 'many', dir must be specified.")
+      dir_name = args.dir
+      programs_desc = Path(f'program_desc/{dir_name}.json')
       desc = json.loads(programs_desc.read_text(encoding='utf-8'))
       generate_many(
-        programs_desc=desc
+        dir_name=dir_name,
+        programs_desc=desc,
       )
+    elif args.amount == 'all':
+      from const import lang_sub_ft
+      for sub_ft in lang_sub_ft:
+        dir_name = sub_ft
+        programs_desc = Path(f'program_desc/{dir_name}.json')
+        desc = json.loads(programs_desc.read_text(encoding='utf-8'))
+        generate_many(
+          dir_name=dir_name,
+          programs_desc=desc,
+        )
     else:
       if args.c_output is None:
         args.c_output = f'programs/{args.amount}.c'
       if args.bsc_output is None:
         args.bsc_output = f'programs/{args.amount}.cbs'
-      # generate(
-      #   c_output=Path(args.c_output),
-      #   bsc_output=Path(args.bsc_output),
-      #   example=True if args.amount == 'example' else False,
-      #   program_description=args.input
-      # )
   elif args.mode == 'translate':
     # TODO: Implement translation functionality
     translate()

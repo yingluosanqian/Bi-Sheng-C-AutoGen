@@ -51,14 +51,23 @@ def gen_program_desc():
 
     return_format = "返回 json 格式的列表，列表的每个元素是一个字符串吗，例如：\n" \
         "[\n" \
-        "  \"...\",\n" \
-        "  \"...\",\n" \
+        "  \"泛型函数实现两个数的交换，适用于int, float等类型\",\n" \
+        "  \"泛型结构体实现哈希表节点，支持任意类型键值\",\n" \
+        "  \"泛为struct Fraction添加simplify成员函数，分数化简\",\n" \
         "  ...\n" \
         "]\n"
 
     system_prompt = "You are a helpful assistant that generates a program description based on the provided feature documentation."
-    user_prompt = f"我要求你描述 {num_of_program} 个尽量简单的 C 语言程序，涉及到如下概念，能体现出如下特性：\n" + \
-        feature_content + "\n返回格式参考：" + return_format
+    user_prompt = f'''
+    我要求你描述 {num_of_program} 个尽量简单的 C 语言程序，涉及到如下概念，能体现出如下特性：
+    {feature_content} 
+
+    返回格式参考：
+    {return_format}
+
+    注意：
+    - 定义“编译时计算”的类型： bool,char(signed char, unsigned char), 整数类型（包括 int 以及被 short/signed/unsigned/long/long long 等修饰的 int 类型，不包括 enum 类型），以及这些类型的别名。
+    '''
     response = ask_llm(system_prompt=system_prompt, user_prompt=user_prompt)
 
     json_pattern = r"```(?:json)?\s*(.*?)\s*```"
@@ -77,6 +86,8 @@ def gen_program_desc():
 
   md_files = list(Path('docs').glob('*.md'))
   for md_file in tqdm(md_files, desc="Generating program descriptions"):
+    if "常量计算" not in md_file.stem:
+      continue
     out_json = Path('program_desc') / (md_file.stem + '.json')
     out_json.parent.mkdir(parents=True, exist_ok=True)
     gen(

@@ -74,13 +74,27 @@ python preprocess.py
 
 ### 批量生成代码
 
-* 一个简单的例子，它将生成两组功能及输出完全一致的 C 代码和 CBS 代码，后者包含了 Bi-Sheng-C 的语言特性。
+一个简单的例子，它将生成 $50$ 对功能及输出完全一致的 C 代码和 CBS 代码，后者包含了 Bi-Sheng-C 的 `成员函数` 语言特性。
+
+可以将 `--dir` 后面的参数替换为 `const.py` 中的其他元素
 
 ``` py
-python main.py generate --amount many
+python main.py generate --amount many --dir 0_成员函数
+```
+ 
+还可以使用 `all` 参数一次性生成每个语言特性的程序。
+
+``` py
+python main.py generate --amount all
 ```
 
-注意：这里使用了大量的 Hard-Code，暂时比较难以修改。
+### 验证代码
+
+使用以下命令可以验证所有 `programs/xxx/` 目录下的代码对是否都能够通过编译且输出结果一致，通过测试的程序将被保存到 `passed_programs/xxx/` 目录下。 
+
+``` py
+python validate.py
+```
 
 ### 翻译代码
 
