@@ -64,36 +64,38 @@ model = "deepseek-chat" if model_version == "v3" else "deepseek-chat"
 
 * Bi-Sheng-C 的官方文档拆分为若干个一级子文档，存放于 `docs/` 目录下
 
-* 生成若干个程序功能描述，存放于 `program_desc` 目录下
+* 对于特定 `feature`，生成数量为 `num` 的程序功能描述，生成的程序功能描述将被放在 `program_desc/${feature}.json` 中。
 
 ``` py
-python preprocess.py 
+python preprocess.py --model dpsk-v3 --feature 9_非空指针 --num 10
 ```
 
 ## 使用
 
 ### 批量生成代码
 
-一个简单的例子，它将生成 $50$ 对功能及输出完全一致的 C 代码和 CBS 代码，后者包含了 Bi-Sheng-C 的 `成员函数` 语言特性。
+一个简单的例子，它将根据 `program_desc/${feature}.json` 中的程序功能描述生成功能及输出完全一致的 C 代码和 CBS 代码，后者包含了 Bi-Sheng-C 的 `成员函数` 语言特性。
 
 可以将 `--dir` 后面的参数替换为 `const.py` 中的其他元素
 
 ``` py
-python main.py generate --amount many --dir 0_成员函数
+python main.py --model dpsk-v3 generate --amount many --dir 9_非空指针
 ```
  
 还可以使用 `all` 参数一次性生成每个语言特性的程序。
 
 ``` py
-python main.py generate --amount all
+python main.py --model dpsk-v3 generate --amount all
 ```
 
 ### 验证代码
 
-使用以下命令可以验证所有 `programs/xxx/` 目录下的代码对是否都能够通过编译且输出结果一致，通过测试的程序将被保存到 `passed_programs/xxx/` 目录下。 
+使用以下命令可以验证所有 `programs/${feature}/` 目录下的代码对是否都能够通过编译且输出结果一致，通过测试的程序将被保存到 `passed_programs/${feature}/` 目录下。 
 
 ``` py
-python validate.py
+python validate.py --feature 9_非空指针
+# 将输出 dump 出来便于检查
+python validate.py --feature 9_非空指针 > debug.log 2>&1
 ```
 
 ### 翻译代码

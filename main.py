@@ -1,7 +1,7 @@
 
 
 import argparse
-from dpsk_llm import ask_llm
+from llm import ask_llm
 from pathlib import Path
 import random
 import re
@@ -10,9 +10,14 @@ import json
 from multiprocessing import Process, Queue
 from tqdm import tqdm
 
+MODEL_VERSION = None
+
 
 def parse_args():
   parser = argparse.ArgumentParser(description="Process some features.")
+  parser.add_argument('--model', choices=['dpsk-v3', 'claude', 'dpsk-r1'],
+                      help="Choose the LLM model to use: 'dpsk-v3', 'dpsk-r1', or 'claude'")
+
   mode_subparsers = parser.add_subparsers(
     dest='mode',
     help='What are you going to do?',
@@ -41,12 +46,18 @@ def parse_args():
     '-i', '--input', default='input_c.c', help='Input file name.')
   parser_translate.add_argument(
     '-o', '--output', default='output_cbs.cbs', help='Output file name.')
-  return parser.parse_args()
+
+  args = parser.parse_args()
+  global MODEL_VERSION
+  MODEL_VERSION = args.model
+  print("Model is set to:", MODEL_VERSION)
+  return args
 
 
 def generate_worker(input_q: Queue, output_q: Queue):
   for idx, dir_name, program_desc in iter(input_q.get, None):
     generate(
+      dir_name,
       c_output=Path(f'programs/{dir_name}/c_{idx}.c'),
       bsc_output=Path(f'programs/{dir_name}/cbs_{idx}.cbs'),
       doc=Path(f'docs/{dir_name}.md'),
@@ -74,6 +85,7 @@ def generate_many(
 
 def generate(
   *,
+  dir_name: str,
   c_output: Path,
   bsc_output: Path,
   doc: Path,
@@ -86,48 +98,15 @@ def generate(
   if program_description is None:
     program_description = "Any program is ok."
 
-  # print(f"Selected feature documentation: {sub_feature_content}")
-
-  # One-shot example
-  one_shot_example = "[\n"
-  "  {\n"
-  "    \"description\": \"...\",\n"
-  "    \"c_code\": \"...\",\n"
-  "    \"bisheng_c_code\": \"...\n"
-  "  }\n"
-  "]\n"
-
-  # System prompt
-  system_prompt = "You are an expert in both C and Bisheng-C programming languages. " \
-      "Bisheng C adopts a different strategy. It incorporates many enhanced designs based on the " \
-      "C language, such as stronger memory safety features and built-in support for concurrency. " \
-      "Moreover, these features can be incrementally adopted in existing codebases without requiring " \
-      "a full rewrite of legacy code. It can be said that Bisheng C is a superset of the C language."
-
-  # User prompt
-  user_prompt = f"""Below is a documentation excerpt describing some features of Bisheng-C:
-  {feature_content}
-
-  You need to write two programs that demonstrate how the features described above make Bisheng-C different from standard C.
-
-  Requirements:
-  - {program_description}
-  - one in C (file extension .c), and one in Bisheng-C (file extension .cbs).
-  - The structure of c_code and bisheng_c_code should be similar, but they do not have to be exactly symmetrical. The main requirement is that their functionality and output are the same.
-  - Return the result in JSON format, containing three fields: description, c_code, and bisheng_c_code.
-
-  Notice:
-  - You also need to use 'include<>' statements in the bisheng-C code, such as <stdio.h> and <stdlib.h>.
-  - Had better to put a '\n' at the end of the output of C code and Bisheng-C code.
-  - The member function of an object does not need to explicitly pass the object's own reference as the first parameter, but this parameter must be named this. For example:
-    'bool struct CircularBuffer<T>::pop(struct CircularBuffer<T> *this, T *item)' When calling it, you can simply use `int_buffer.pop(&val)` instead of `int_buffer.pop(&int_buffer, &val)`.
-  - Bi-Sheng-C has added some header files with the .hbs extension, but do not rename the original C header files to .hbs.
-  - There is no bool type in C, so you can use int instead. In Bisheng-C, you can use _Bool type.
-  {one_shot_example}
-  """
+  system_prompt, user_prompt = build_prompt(
+    dir_name=dir_name,
+    feature_content=feature_content,
+    program_description=program_description,
+  )
 
   # Call the LLM to generate the C and Bisheng-C code
-  response = ask_llm(system_prompt=system_prompt, user_prompt=user_prompt)
+  response = ask_llm(system_prompt=system_prompt,
+                     user_prompt=user_prompt, model_version=MODEL_VERSION)
 
   # Preprocess response to extract JSON if wrapped in code block
   json_pattern = r"```(?:json)?\s*(.*?)\s*```"
@@ -152,8 +131,144 @@ def generate(
     f.write("/*\n" + feature_name + "\n" + program_description +
             '\n*/\n' + response['bisheng_c_code'])
 
-  # print(
-  #   f"Success, saved C code to {c_output}, Bisheng-C code to {bsc_output}.")
+
+def build_prompt(
+  dir_name: str,
+  feature_content: str,
+  program_description: str,
+) -> tuple[str, str]:
+  if dir_name == '6_内存安全':
+    return build_prompt_memory_safety(
+      feature_content=feature_content,
+      program_description=program_description,
+    )
+  elif dir_name == '7_owned-struct-类型':
+    return build_prompt_owned_struct(
+      feature_content=feature_content,
+      program_description=program_description,
+    )
+  elif dir_name == '9_非空指针':
+    return build_prompt_nonnull_pointer(
+      feature_content=feature_content,
+      program_description=program_description,
+    )
+  elif dir_name == '10_标准库':
+    return build_prompt_standard_lib(
+      feature_content=feature_content,
+      program_description=program_description,
+    )
+  else:
+    return build_prompt_generic(
+      feature_content=feature_content,
+      program_description=program_description,
+    )
+
+
+def build_prompt_memory_safety(
+  feature_content: str,
+  program_description: str,
+) -> tuple[str, str]:
+  # TODO: Implement a more specific prompt for memory safety
+  # i.e. do not use the generic prompt
+  return build_prompt_memory_safety(
+    feature_content=feature_content,
+    program_description=program_description,
+  )
+
+
+def build_prompt_owned_struct(
+  feature_content: str,
+  program_description: str,
+) -> tuple[str, str]:
+  # TODO: Implement a more specific prompt for owned-struct type
+  # i.e. do not use the generic prompt
+  return build_prompt_memory_safety(
+    feature_content=feature_content,
+    program_description=program_description,
+  )
+
+
+def build_prompt_nonnull_pointer(
+  feature_content: str,
+  program_description: str,
+) -> tuple[str, str]:
+  # TODO: Implement a more specific prompt for nonnull pointers
+  # i.e. do not use the generic prompt
+  return build_prompt_memory_safety(
+    feature_content=feature_content,
+    program_description=program_description,
+  )
+
+
+def build_prompt_standard_lib(
+  feature_content: str,
+  program_description: str,
+) -> tuple[str, str]:
+  # TODO: Implement a more specific prompt for standard library
+  # i.e. do not use the generic prompt
+  return build_prompt_memory_safety(
+    feature_content=feature_content,
+    program_description=program_description,
+  )
+
+
+def build_prompt_generic(
+  feature_content: str,
+  program_description: str,
+) -> tuple[str, str]:
+  '''
+  feature_content: The content of the feature documentation.
+  program_description: A description of the program to be generated.
+  Returns a tuple of system and user prompts.
+  '''
+
+  # One-shot example
+  one_shot_example = "[\n"
+  "  {\n"
+  "    \"description\": \"...\",\n"
+  "    \"c_code\": \"...\",\n"
+  "    \"bisheng_c_code\": \"...\n"
+  "  }\n"
+  "]\n"
+
+  # System prompt
+  system_prompt = "You are an expert in both C and Bisheng-C programming languages. " \
+      "Bisheng C adopts a different strategy. It incorporates many enhanced designs based on the " \
+      "C language, such as stronger memory safety features and built-in support for concurrency. " \
+      "Moreover, these features can be incrementally adopted in existing codebases without requiring " \
+      "a full rewrite of legacy code. It can be said that Bisheng C is a superset of the C language."
+
+  # User prompt
+  user_prompt = f"""
+  You need to write two simple (as simple as possible) programs that demonstrate how below features described above make Bisheng-C different from standard C.
+
+  Requirements:
+  - {program_description}
+  - Return the result in JSON format, containing three fields: description, c_code, and bisheng_c_code.
+  - Note: The outputs of both programs must be identical. Ensure there are no extra outputs (such as additional logs, debug info, or unintended formatting) in either program.
+  
+  Notice:
+  - You also need to use 'include<>' statements in the bisheng-C code, such as <stdio.h> and <stdlib.h>.
+  - The member function of an object does not need to explicitly pass the object's own reference as the first parameter, but this parameter must be named this. For example:
+    'bool struct CircularBuffer<T>::pop(struct CircularBuffer<T> *this, T *item)' When calling it, you can simply use `int_buffer.pop(&val)` instead of `int_buffer.pop(&int_buffer, &val)`. Some other example:
+    - It is 'future->free()' rather than 'future->free(future)'.
+    - It is 'future->poll()' rather than 'future->poll(future)'.
+    - It is 'result.is_completed(&value)' rather than 'result.is_completed(&result, &value)'.
+  - Cast to (void * owned) before passing a pointer to a function that takes an owned pointer, such as 'safe_malloc<Type>(...)', 'safe_free', etc. For example:
+    - safe_free((void * owned)q);
+  - Include "bishengc_safety.hbs" before use "safe_malloc", "safe_free", etc. in Bisheng-C code.
+  - No need to set pointer to NULL after the ownership transfer, such as 'q = NULL;'. In Bisheng-C, the ownership transfer is implicit and does not require explicit nullification.
+  - You need to include <stdlib.h> before using the 'async' keyword if you use it.
+  - Bi-Sheng-C has added some header files with the .hbs extension, but do not rename the original C header files to .hbs.
+  - There is no bool type in C, so you can use int instead. In Bisheng-C, you can use _Bool type.
+  - 'async' can not be used to decorate 'main' function in Bisheng-C.
+
+  {one_shot_example}
+
+  Below is a documentation excerpt describing some features of Bisheng-C:
+    {feature_content}
+  """
+  return system_prompt, user_prompt
 
 
 def translate(

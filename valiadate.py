@@ -2,6 +2,17 @@
 
 from pathlib import Path
 import subprocess
+from const import lang_sub_ft
+import argparse
+
+
+def parse_args():
+  parser = argparse.ArgumentParser(
+    description="Validate C and CBS program pairs.")
+  parser.add_argument("--feature", type=str, required=True,
+                      help="Feature to validate, e.g., '8_运算符重载'.")
+  args = parser.parse_args()
+  return args
 
 
 def validate(
@@ -28,9 +39,10 @@ def validate(
       c_exe = Path('binary_temp') / f"c_{id}"
       if not c_exe.parent.exists():
         c_exe.parent.mkdir(parents=True, exist_ok=True)
-      subprocess.run(["clang", c_file, "-o", c_exe], check=True, timeout=timeout)
+      subprocess.run(["clang", c_file, "-o", c_exe],
+                     check=True, timeout=timeout)
       c_out = subprocess.run([c_exe], capture_output=True,
-                text=True, check=True, timeout=timeout).stdout
+                             text=True, check=True, timeout=timeout).stdout
 
       # 编译 cbs 文件（假设 cbs 文件可用 clang 编译）
       cbs_exe = Path('binary_temp') / f"cbs_{id}"
@@ -52,13 +64,15 @@ def validate(
         "-I/opt/compiler/llvm-project/libcbs/src/bishengc_safety",
         "-I/opt/compiler/llvm-project/libcbs/src/scheduler",
       ]
-      subprocess.run(["clang", cbs_file, "-o", cbs_exe, *clang_args], check=True, timeout=timeout)
+      subprocess.run(["clang", cbs_file, "-o", cbs_exe, *
+                     clang_args], check=True, timeout=timeout)
       cbs_out = subprocess.run(
         [cbs_exe], capture_output=True, text=True, check=True, timeout=timeout).stdout
 
       if c_out == cbs_out:
         print(f"Pair {id}: Output matches.")
-        dst_dir = Path("passed_programs") / c_file.parent.relative_to("programs")
+        dst_dir = Path("passed_programs") / \
+            c_file.parent.relative_to("programs")
         dst_dir.mkdir(parents=True, exist_ok=True)
         dst_c = dst_dir / c_file.name
         dst_cbs = dst_dir / cbs_file.name
@@ -78,9 +92,9 @@ def validate(
 
 
 def main():
-  from const import lang_sub_ft
-  for sub_ft in lang_sub_ft:
-    validate(dir=Path('programs') / sub_ft)
+  args = parse_args()
+
+  validate(dir=Path('programs') / args.feature)
 
 
 if __name__ == "__main__":
