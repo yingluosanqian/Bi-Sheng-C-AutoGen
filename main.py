@@ -57,7 +57,7 @@ def parse_args():
 def generate_worker(input_q: Queue, output_q: Queue):
   for idx, dir_name, program_desc in iter(input_q.get, None):
     generate(
-      dir_name,
+      dir_name=dir_name,
       c_output=Path(f'programs/{dir_name}/c_{idx}.c'),
       bsc_output=Path(f'programs/{dir_name}/cbs_{idx}.cbs'),
       doc=Path(f'docs/{dir_name}.md'),
@@ -170,7 +170,7 @@ def build_prompt_memory_safety(
 ) -> tuple[str, str]:
   # TODO: Implement a more specific prompt for memory safety
   # i.e. do not use the generic prompt
-  return build_prompt_memory_safety(
+  return build_prompt_generic(
     feature_content=feature_content,
     program_description=program_description,
   )
@@ -182,7 +182,7 @@ def build_prompt_owned_struct(
 ) -> tuple[str, str]:
   # TODO: Implement a more specific prompt for owned-struct type
   # i.e. do not use the generic prompt
-  return build_prompt_memory_safety(
+  return build_prompt_generic(
     feature_content=feature_content,
     program_description=program_description,
   )
@@ -194,7 +194,7 @@ def build_prompt_nonnull_pointer(
 ) -> tuple[str, str]:
   # TODO: Implement a more specific prompt for nonnull pointers
   # i.e. do not use the generic prompt
-  return build_prompt_memory_safety(
+  return build_prompt_generic(
     feature_content=feature_content,
     program_description=program_description,
   )
@@ -206,7 +206,7 @@ def build_prompt_standard_lib(
 ) -> tuple[str, str]:
   # TODO: Implement a more specific prompt for standard library
   # i.e. do not use the generic prompt
-  return build_prompt_memory_safety(
+  return build_prompt_generic(
     feature_content=feature_content,
     program_description=program_description,
   )

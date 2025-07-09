@@ -70,6 +70,21 @@ model = "deepseek-chat" if model_version == "v3" else "deepseek-chat"
 python preprocess.py --model dpsk-v3 --feature 9_非空指针 --num 10
 ```
 
+feature 必须是以下内容之一：
+
+``` txt
+0_成员函数
+1_泛型
+2_常量计算
+3_trait
+4_无栈协程
+6_内存安全
+7_owned-struct-类型
+8_运算符重载
+9_非空指针
+10_标准库
+```
+
 ## 使用
 
 ### 批量生成代码
