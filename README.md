@@ -44,7 +44,7 @@ InstalledDir: /path/to/bi-sheng-c-release/X86/llvm_15.0.4_X86_BSC/bin
 我目前使用了 DeepseekAPIKey，需要输入如下命令将 APIKey 写入系统环境变量：
 
 ``` shell
-export DEEPSEEK_API_KEY=sk-2cef7ab97f1c4b619dd61bd2218da081
+export DEEPSEEK_API_KEY=${YOUR_API_KEY}$
 ```
 
 一个更方便的方式是把上面的配置信息写入脚本配置文件，如 `.bashrc`。
