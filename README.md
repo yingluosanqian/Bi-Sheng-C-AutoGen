@@ -20,6 +20,7 @@ git clone git@gitee.com:bisheng_c_language_dep/llvm-project.git
 cd llvm-project
 mkdir build && cd build
 cmake -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;libcbs" -DCMAKE_BUILD_TYPE=Release -G "Unix Makefiles" ../llvm
+make clang -j6
 make -j6
 ```
 
