@@ -265,12 +265,104 @@ def build_prompt_standard_lib(
   feature_content: str,
   program_description: str,
 ) -> tuple[str, str]:
-  # TODO: Implement a more specific prompt for standard library
-  # i.e. do not use the generic prompt
-  return build_prompt_generic(
-    feature_content=feature_content,
-    program_description=program_description,
-  )
+  '''
+  A specific prompt generator for the "standard library" feature category in BiSheng-C.
+  '''
+
+  # One-shot example
+  one_shot_example = """
+[
+  {
+    "description": "...",
+    "c_code": "...",
+    "bisheng_c_code": "..."
+  }
+]
+"""
+
+  # System prompt
+  system_prompt = """
+  You are an expert in both standard C and BiSheng-C. 
+  BiSheng-C is a memory-safe, ownership-enforcing extension of C, supporting safe/unsafe zones and high-level types 
+  such as Vec, Option, Rc, RefCell, and HashMap. Your job is to write **minimal and compilable** BiSheng-C programs 
+  that demonstrate how BiSheng-C features differ from C, while strictly following safety rules.
+
+  ✅ BiSheng-C DOs:
+  - Wrap unsafe calls (e.g., `printf`, `String::from`) using `unsafe {}` syntax
+  - Use `#include \"xxx.hbs\"` for BiSheng-C-specific types (e.g., \"vec.hbs\", \"string.hbs\")
+  - Use `safe int main(void)` — not `int main()`
+  - Use `_Bool` instead of `bool`
+  - Free owned memory via `safe_free((void * owned)x);` — only for malloc'ed pointers
+
+  ❌ BiSheng-C DON'Ts:
+  - Never use `++`, `--`, or `arr[i]` style indexing on owned types
+  - Never call unsafe functions in safe blocks (e.g., `printf`, `String::from`, `fopen`)
+  - Never write `use Vec;`, `use String;` — not supported
+  - Never `#include \"stdio.hbs\"` — use `<stdio.h>` instead
+  - Never cast or free complex types like `String`, `Rc<T>` via `(void * owned)` — will cause error
+  - Never mutate while borrowed, obey the borrow checker
+
+  Your output must **compile in BiSheng-C** without warnings or errors — or it is invalid.
+  """
+
+  # User prompt
+  user_prompt = f"""
+  You need to write two extremely simple programs to demonstrate how the following feature makes BiSheng-C different from standard C.
+
+  Your task:
+
+  - Write two minimal programs (as simple as possible) that fulfill this requirement:
+    - {program_description}
+
+  - The output of the two programs **must be identical**. No extra debug logs, print statements, or formatting should be present.
+
+  Output format:
+
+  Return your result in JSON format, containing exactly three fields:
+  - \"description\": (Explain how this feature makes BiSheng-C different from standard C)
+  - \"c_code\": (C version of the program)
+  - \"bisheng_c_code\": (BiSheng-C version of the program)
+
+  BiSheng-C Code Requirements:
+
+  1. 🚫 Never call unsafe functions (e.g., `printf`, `String::from`, `HashMap::insert`, `fopen`) directly in `safe` functions.
+    - ✅ Use `unsafe {{ printf(...) }}` or `log_safe_*()` if available.
+
+  2. ✅ Always use `#include <...>` for C standard headers, and `#include \"xxx.hbs\"` for BiSheng-C specific features.
+  3. ✅ When using `safe_malloc`, `safe_free`, `forget`, etc., include `\"bishengc_safety.hbs\"`.
+  4. ✅ Always write `safe int main(void)` — not `main()` with empty params.
+  5. 🚫 Do not use `++` / `--` operators. Use `i = i + 1` instead.
+  6. 🚫 Do not index into owned pointers like `arr[0]`. Use `Vec` or `.deref()` accessors.
+  7. ✅ When passing owned pointers, cast explicitly as `(void * owned)` before freeing.
+  8. ✅ Never nullify after ownership transfer — BiSheng-C tracks ownership statically.
+  9. 🚫 Avoid memory leaks — owned values must be freed or transferred before discard.
+  10. 🚫 Never mutate a value while it is immutably borrowed. Obey borrow checker rules.
+  11. ✅ When using types like `Vec<String>`, `Option<T>`, or `Rc<T>`:
+      - Include the proper `.hbs` file (e.g., \"vec.hbs\", \"option.hbs\")
+      - 🚫 Do NOT use `use Vec;`, `use String;` — these are not supported in BiSheng-C
+  12. ✅ Use `_Bool` instead of `bool` in BiSheng-C.
+  13. 🚫 Do not make `main()` an async function. Avoid blocking calls like `Scheduler::run()` before `destroy()`.
+
+  💡 Recommended:
+  - For output, prefer `log_safe_int`, `log_safe_str`, etc., if your system defines them.
+  - Always use `unsafe {{ ... }}` to isolate unsafe operations like `String::from(\"hello\")`.
+
+  ❌ Forbidden patterns (will cause compile-time failure in BiSheng-C):
+  - Implicit string literal usage (`String::from(\"abc\")`) in safe zones
+  - Owned pointer indexing (`arr[i]`)
+  - `++`, `--`, or C-style unsafe loops
+  - `use Vec;`, `use String;`
+  - `#include \"stdio.hbs\"` — use `<stdio.h>` instead
+  - Redefining built-in functions like `safe_swap`, `forget`
+
+  {one_shot_example}
+
+  Below is a documentation excerpt describing some features of BiSheng-C:
+  {feature_content}
+  """
+
+  return system_prompt, user_prompt
+
 
 
 def build_prompt_generic(
