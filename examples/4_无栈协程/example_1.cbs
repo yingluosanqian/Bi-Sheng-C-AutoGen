@@ -1,0 +1,45 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+#include "future.hbs"
+
+struct Queue {
+    int items[10];
+    int front;
+    int rear;
+};
+
+void enqueue(struct Queue* q, int value) {
+    q->items[q->rear++] = value;
+}
+
+int dequeue(struct Queue* q) {
+    return q->items[q->front++];
+}
+
+_Bool is_empty(struct Queue* q) {
+    return q->front == q->rear;
+}
+
+async int process_item(int item) {
+    return item * 2;
+}
+
+async void process_queue(struct Queue* q) {
+    while (!is_empty(q)) {
+        int item = dequeue(q);
+        int result = await process_item(item);
+        printf("%d\n", result);
+    }
+}
+
+int main() {
+    struct Queue q = {{0}, 0, 0};
+    enqueue(&q, 1);
+    enqueue(&q, 2);
+    enqueue(&q, 3);
+    trait Future<struct Void>* future = process_queue(&q);
+    future->poll();
+    future->free();
+    return 0;
+}

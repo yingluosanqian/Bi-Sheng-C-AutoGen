@@ -1,0 +1,41 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+
+/* Define generic trait in Bisheng-C */
+trait Converter<T> {
+    T* convert(This* this);
+};
+
+/* Implement convert methods for int */
+float* int::convert(int* this) {
+    float* result = malloc(sizeof(float));
+    *result = (float)*this;
+    return result;
+}
+
+char* int::convert_to_string(int* this) {
+    char* result = malloc(32);
+    sprintf(result, "%d", *this);
+    return result;
+}
+
+/* Implement the trait for int */
+impl trait Converter<float> for int;
+
+int main() {
+    int value = 42;
+    
+    /* Use trait polymorphism */
+    trait Converter<float>* converter = &value;
+    float* converted = converter->convert();
+    printf("%f\n", *converted);
+    free(converted);
+    
+    /* For string conversion (not using trait in this case) */
+    char* str = value.convert_to_string();
+    printf("%s\n", str);
+    free(str);
+    
+    return 0;
+}

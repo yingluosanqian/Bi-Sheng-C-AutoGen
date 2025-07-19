@@ -1,0 +1,20 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+trait NullCheck {
+    _Bool is_null(This* this);
+};
+
+_Bool void*::is_null(void** this) {
+    return *this == NULL;
+}
+
+impl trait NullCheck for void*;
+
+int main() {
+    void *ptr = NULL;
+    if (ptr.is_null()) {
+        return 0;
+    }
+    return 1;
+}

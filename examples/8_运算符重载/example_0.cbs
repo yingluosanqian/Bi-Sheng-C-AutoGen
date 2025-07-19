@@ -1,0 +1,28 @@
+#include <stdio.h>
+
+typedef struct {
+    int data[2][2];
+} Matrix;
+
+__attribute__((operator *))
+Matrix matrix_multiply_scalar(Matrix m, int scalar) {
+    Matrix result;
+    for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 2; j++) {
+            result.data[i][j] = m.data[i][j] * scalar;
+        }
+    }
+    return result;
+}
+
+int main() {
+    Matrix mat = {{{1, 2}, {3, 4}}};
+    int scalar = 2;
+    
+    Matrix result = mat * scalar;
+    
+    printf("%d %d\n%d %d", 
+           result.data[0][0], result.data[0][1],
+           result.data[1][0], result.data[1][1]);
+    return 0;
+}

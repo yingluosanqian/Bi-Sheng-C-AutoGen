@@ -1,0 +1,15 @@
+#include <stdio.h>
+#include "bishengc_safety.hbs"
+
+safe int main(void) {
+    int val1 = 70;
+    int *borrow ptr = &mut val1;
+    
+    *ptr = 75;
+    
+    unsafe {
+        printf("{result: %d}\n", *ptr);
+    }
+    
+    return 0;
+}

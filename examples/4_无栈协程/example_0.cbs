@@ -1,0 +1,21 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+#include "future.hbs"
+
+async int factorial(int n) {
+    if (n <= 1) return 1;
+    int tmp = await factorial(n - 1);
+    return n * tmp;
+}
+
+int main() {
+    trait Future<int>* future = factorial(5);
+    struct PollResult<int> result = future->poll();
+    int value;
+    if (result.is_completed(&value)) {
+        printf("{\"result\":%d}", value);
+    }
+    future->free();
+    return 0;
+}

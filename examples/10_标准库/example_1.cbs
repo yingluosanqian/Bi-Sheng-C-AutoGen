@@ -1,0 +1,57 @@
+// C Implementation
+// #include <stdio.h>
+// #include <stdlib.h>
+
+// typedef struct Node {
+//     int data;
+//     struct Node* next;
+// } Node;
+
+// Node* push(Node* top, int value) {
+//     Node* new_node = (Node*)malloc(sizeof(Node));
+//     new_node->data = value;
+//     new_node->next = top;
+//     return new_node;
+// }
+
+// Node* pop(Node* top, int* value) {
+//     if (top == NULL) return NULL;
+//     *value = top->data;
+//     Node* temp = top;
+//     top = top->next;
+//     free(temp);
+//     return top;
+// }
+
+// int main(void) {
+//     Node* stack = NULL;
+//     int val;
+    
+//     stack = push(stack, 10);
+//     stack = push(stack, 20);
+    
+//     stack = pop(stack, &val);
+//     printf("%d\n", val);
+    
+//     stack = pop(stack, &val);
+//     printf("%d\n", val);
+    
+//     return 0;
+// }
+
+#include "list.hbs"
+#include <stdio.h>
+
+safe int main(void) {
+    LinkedList<int> stack = LinkedList<int>::new();
+    
+    stack.push_front(10);
+    stack.push_front(20);
+    
+    unsafe {
+        printf("%d\n", stack.pop_front());
+        printf("%d\n", stack.pop_front());
+    }
+    
+    return 0;
+}

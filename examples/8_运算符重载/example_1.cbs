@@ -1,0 +1,21 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct {
+    int value;
+} Data;
+
+__attribute__((operator <<))
+Data compress_operator(Data d, int shift_bits) {
+    int compressed = (d.value >> shift_bits) << shift_bits;
+    return (Data){compressed};
+}
+
+int main() {
+    Data original = {100};  // Binary: 01100100
+    int shift = 2;          // Zero out 2 lowest bits
+    
+    Data compressed = original << shift;  // Uses overloaded operator
+    printf("%d\n", compressed.value);  // Output: 96 (binary: 01100000)
+    return 0;
+}

@@ -1,0 +1,30 @@
+
+#include <stdio.h>
+#include <bsc_type_traits.hbs>
+
+constexpr int factorial_impl<int N>() {
+    if constexpr (N <= 1) {
+        return 1;
+    } else {
+        return N * factorial_impl<N - 1>();
+    }
+}
+
+constexpr int fibonacci_impl<int N>() {
+    if constexpr (N <= 1) {
+        return N;
+    } else {
+        return fibonacci_impl<N - 1>() + fibonacci_impl<N - 2>();
+    }
+}
+
+int main() {
+    constexpr int n = 5;
+    constexpr int fact_result = factorial_impl<n>();
+    constexpr int fib_result = fibonacci_impl<n>();
+    
+    printf("Factorial of %d: %d\n", n, fact_result);
+    printf("Fibonacci of %d: %d\n", n, fib_result);
+    
+    return 0;
+}

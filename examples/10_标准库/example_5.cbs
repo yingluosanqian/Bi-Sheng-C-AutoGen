@@ -1,0 +1,22 @@
+#include "vec.hbs"
+#include "string.hbs"
+#include <stdio.h>
+
+safe int main(void) {
+    Vec<String> vec = Vec<String>::new();
+    
+    unsafe {
+        vec.push(String::from("Hello"));
+        vec.push(String::from("World"));
+        vec.push(String::from("!"));
+    }
+    
+    for (size_t i = 0; i < vec.length(); i = i + 1) {
+        const String* borrow s = vec.get(i);
+        unsafe {
+            printf("%s\n", s->as_str());
+        }
+    }
+    
+    return 0;
+}

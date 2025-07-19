@@ -1,0 +1,23 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include "bishengc_safety.hbs"
+
+struct Buffer {
+    int* owned data;
+};
+
+safe int main(void) {
+    struct Buffer buf1 = { .data = safe_malloc<int>(99) };
+
+    struct Buffer buf2 = buf1;
+
+    *buf2.data = 101;
+
+    unsafe {
+        printf("{result: %d}\n", *buf2.data);
+    }
+    
+    safe_free((void *owned)buf2.data);
+
+    return 0;
+}

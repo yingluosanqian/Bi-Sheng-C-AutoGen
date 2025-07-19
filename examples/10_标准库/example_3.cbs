@@ -1,0 +1,47 @@
+// C Implementation of Reference Counting Example
+// #include <stdio.h>
+// #include <stdlib.h>
+
+// typedef struct {
+//     int count;
+// } Counter;
+
+// Counter* create_counter() {
+//     Counter* c = malloc(sizeof(Counter));
+//     c->count = 0;
+//     return c;
+// }
+
+// void increment(Counter* c) {
+//     c->count++;
+// }
+
+// int main() {
+//     Counter* counter = create_counter();
+//     increment(counter);
+//     printf("%d\n", counter->count);
+//     free(counter);
+//     return 0;
+// }
+
+#include "bishengc_safety.hbs"
+#include "cell.hbs"
+#include <stdio.h>
+
+struct Cache {
+    int value;
+};
+
+safe int main(void) {
+    RefCell<struct Cache> cache = RefCell<struct Cache>::new((struct Cache){.value = 42});
+    
+    // Mutable access through RefCell
+    RefMut<struct Cache> cache_ref = cache.borrow_mut();
+    cache_ref.deref()->value = 100;
+    
+    unsafe {
+        printf("%d\n", cache_ref.deref()->value);
+    }
+    
+    return 0;
+}

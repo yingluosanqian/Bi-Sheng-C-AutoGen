@@ -1,0 +1,63 @@
+/*
+1_泛型.md
+泛型结构体实现链表节点，支持任意类型数据
+*/
+#include <stdio.h>
+#include <stdlib.h>
+
+struct Node<T> {
+    T data;
+    struct Node<T>* next;
+};
+
+struct Node<T>* create_node<T>(T value) {
+    struct Node<T>* node = (struct Node<T>*)malloc(sizeof(struct Node<T>));
+    node->data = value;
+    node->next = NULL;
+    return node;
+}
+
+void print_int_list(struct Node<int>* head) {
+    struct Node<int>* current = head;
+    while (current != NULL) {
+        printf("%d ", current->data);
+        current = current->next;
+    }
+    printf("\n");
+}
+
+void print_float_list(struct Node<float>* head) {
+    struct Node<float>* current = head;
+    while (current != NULL) {
+        printf("%.1f ", current->data);
+        current = current->next;
+    }
+    printf("\n");
+}
+
+void free_list<T>(struct Node<T>* head) {
+    struct Node<T>* current = head;
+    while (current != NULL) {
+        struct Node<T>* temp = current;
+        current = current->next;
+        free(temp);
+    }
+}
+
+int main() {
+    struct Node<int>* int_head = create_node<int>(10);
+    int_head->next = create_node<int>(20);
+    int_head->next->next = create_node<int>(30);
+    
+    struct Node<float>* float_head = create_node<float>(1.5);
+    float_head->next = create_node<float>(2.5);
+    float_head->next->next = create_node<float>(3.5);
+    
+    print_int_list(int_head);
+    print_float_list(float_head);
+    
+    free_list<int>(int_head);
+    free_list<float>(float_head);
+    
+    return 0;
+}

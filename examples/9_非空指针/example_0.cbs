@@ -1,0 +1,10 @@
+void use_immut(const int *borrow p);
+void use_mut(int *borrow p);
+
+void test() {
+    int local = 5;
+    int *borrow p1 = &mut local;         //p1是可变借用指针，借用了local
+    use_mut(p1);
+    const int *borrow p2 = &const local; //p2是不可变借用指针，借用了local
+    use_immut(p2);
+}

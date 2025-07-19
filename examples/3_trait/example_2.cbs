@@ -1,0 +1,58 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+
+// Define generic Calculator trait
+trait Calculator<T> {
+    T add(This* this, T other);
+    T subtract(This* this, T other);
+    T multiply(This* this, T other);
+    T divide(This* this, T other);
+};
+
+// Implement Calculator for int
+int int::add(int* this, int other) { return *this + other; }
+int int::subtract(int* this, int other) { return *this - other; }
+int int::multiply(int* this, int other) { return *this * other; }
+int int::divide(int* this, int other) { return *this / other; }
+
+impl trait Calculator<int> for int;
+
+// Implement Calculator for float
+float float::add(float* this, float other) { return *this + other; }
+float float::subtract(float* this, float other) { return *this - other; }
+float float::multiply(float* this, float other) { return *this * other; }
+float float::divide(float* this, float other) { return *this / other; }
+
+impl trait Calculator<float> for float;
+
+// Helper function to demonstrate trait usage
+void perform_calculations(trait Calculator<int>* int_calc, trait Calculator<float>* float_calc) {
+    // Integer operations
+    int a = 10, b = 3;
+    printf("Integer operations:\n");
+    printf("%d + %d = %d\n", a, b, int_calc->add(b));
+    printf("%d - %d = %d\n", a, b, int_calc->subtract(b));
+    printf("%d * %d = %d\n", a, b, int_calc->multiply(b));
+    printf("%d / %d = %d\n", a, b, int_calc->divide(b));
+
+    // Float operations
+    float x = 10.5f, y = 3.2f;
+    printf("\nFloat operations:\n");
+    printf("%.2f + %.2f = %.2f\n", x, y, float_calc->add(y));
+    printf("%.2f - %.2f = %.2f\n", x, y, float_calc->subtract(y));
+    printf("%.2f * %.2f = %.2f\n", x, y, float_calc->multiply(y));
+    printf("%.2f / %.2f = %.2f\n", x, y, float_calc->divide(y));
+}
+
+int main() {
+    int int_val = 10;
+    float float_val = 10.5f;
+    
+    trait Calculator<int>* int_calc = &int_val;
+    trait Calculator<float>* float_calc = &float_val;
+    
+    perform_calculations(int_calc, float_calc);
+    
+    return 0;
+}

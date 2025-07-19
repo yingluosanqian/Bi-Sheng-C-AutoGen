@@ -1,0 +1,42 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+
+struct Vector {
+    int x;
+    int y;
+};
+
+trait Add {
+    struct Vector add(This* this, struct Vector* other);
+};
+
+struct Vector struct Vector::add(struct Vector* this, struct Vector* other) {
+    struct Vector result = {
+        .x = this->x + other->x,
+        .y = this->y + other->y
+    };
+    return result;
+}
+
+void struct Vector::print(struct Vector* this) {
+    printf("Vector(%d, %d)\n", this->x, this->y);
+}
+
+impl trait Add for struct Vector;
+
+int main() {
+    struct Vector v1 = {.x = 3, .y = 5};
+    struct Vector v2 = {.x = 2, .y = 7};
+    
+    printf("Vector 1: ");
+    v1.print();
+    printf("Vector 2: ");
+    v2.print();
+    
+    struct Vector sum = v1.add(&v2);
+    printf("Sum: ");
+    sum.print();
+    
+    return 0;
+}

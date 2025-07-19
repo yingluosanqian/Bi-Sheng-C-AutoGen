@@ -1,0 +1,74 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <bsc_type_traits.hbs>
+
+struct AdaptiveContainer<T> {
+    T data[10];
+    T* dynamic_data;
+    int size;
+    int capacity;
+};
+
+constexpr _Bool should_use_array<T>() {
+    return is_integral<T>();
+}
+
+void struct AdaptiveContainer<T>::init(struct AdaptiveContainer<T>* this) {
+    this->size = 0;
+    if constexpr (should_use_array<T>()) {
+        memset(this->data, 0, sizeof(this->data));
+        this->dynamic_data = NULL;
+        this->capacity = 10;
+    } else {
+        this->dynamic_data = malloc(10 * sizeof(T));
+        this->capacity = 10;
+    }
+}
+
+void struct AdaptiveContainer<T>::add(struct AdaptiveContainer<T>* this, T value) {
+    if constexpr (should_use_array<T>()) {
+        if (this->size < 10) {
+            this->data[this->size++] = value;
+        }
+    } else {
+        if (this->size < this->capacity) {
+            this->dynamic_data[this->size++] = value;
+        }
+    }
+}
+
+int struct AdaptiveContainer<T>::get_size(struct AdaptiveContainer<T>* this) {
+    return this->size;
+}
+
+void struct AdaptiveContainer<T>::cleanup(struct AdaptiveContainer<T>* this) {
+    if constexpr (!should_use_array<T>()) {
+        if (this->dynamic_data != NULL) {
+            free(this->dynamic_data);
+        }
+    }
+}
+
+int main() {
+    struct AdaptiveContainer<int> int_container;
+    struct AdaptiveContainer<int*> ptr_container;
+    
+    int_container.init();
+    ptr_container.init();
+    
+    int_container.add(42);
+    int_container.add(24);
+    
+    int x = 100, y = 200;
+    ptr_container.add(&x);
+    ptr_container.add(&y);
+    
+    printf("Int container size: %d\n", int_container.get_size());
+    printf("Ptr container size: %d\n", ptr_container.get_size());
+    
+    int_container.cleanup();
+    ptr_container.cleanup();
+    return 0;
+}

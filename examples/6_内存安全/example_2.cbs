@@ -1,0 +1,14 @@
+#include "bishengc_safety.hbs"
+#include <stdio.h>
+
+safe void modify_value(int *borrow ptr) {
+    *ptr = 42;
+}
+
+safe int main(void) {
+    int x = 10;
+    int *borrow ptr = &mut x;
+    modify_value(ptr);
+    unsafe { printf("%d\n", x); }
+    return 0;
+}

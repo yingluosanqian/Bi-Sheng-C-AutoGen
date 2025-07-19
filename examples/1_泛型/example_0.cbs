@@ -1,0 +1,62 @@
+/*
+1_泛型.md
+泛型成员函数为栈结构添加push操作，支持任意类型
+*/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Generic Stack structure
+struct Stack<T> {
+    T* data;
+    int capacity;
+    int top;
+};
+
+// Create a new stack
+struct Stack<T>* create_stack<T>(int capacity) {
+    struct Stack<T>* stack = (struct Stack<T>*)malloc(sizeof(struct Stack<T>));
+    if (stack == NULL) {
+        return NULL;
+    }
+    stack->data = (T*)malloc(capacity * sizeof(T));
+    if (stack->data == NULL) {
+        free(stack);
+        return NULL;
+    }
+    stack->capacity = capacity;
+    stack->top = -1;
+    return stack;
+}
+
+// Generic member function for pushing elements
+_Bool struct Stack<T>::push(struct Stack<T> *this, T value) {
+    if (this->top >= this->capacity - 1) {
+        return 0; // Stack overflow
+    }
+    this->data[++this->top] = value;
+    return 1;
+}
+
+int main() {
+    // Integer stack
+    struct Stack<int>* int_stack = create_stack<int>(5);
+    int_stack->push(10);
+    int_stack->push(20);
+    
+    // Float stack
+    struct Stack<float>* float_stack = create_stack<float>(5);
+    float_stack->push(3.14);
+    float_stack->push(2.71);
+    
+    printf("Integer stack top: %d\n", int_stack->data[int_stack->top]);
+    printf("Float stack top: %.2f\n", float_stack->data[float_stack->top]);
+    
+    // Clean up
+    free(int_stack->data);
+    free(int_stack);
+    free(float_stack->data);
+    free(float_stack);
+    
+    return 0;
+}

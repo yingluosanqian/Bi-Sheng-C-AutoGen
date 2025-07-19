@@ -1,0 +1,19 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+#include "future.hbs"
+
+async int check_permission() {
+    return 1;  // Permission granted
+}
+
+int main() {
+    trait Future<int>* permission = check_permission();
+    struct PollResult<int> result = permission->poll();
+    int allowed;
+    if (result.is_completed(&allowed)) {
+        printf("{\"allowed\": %d}", allowed);
+    }
+    permission->free();
+    return 0;
+}

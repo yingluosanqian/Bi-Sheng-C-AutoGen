@@ -1,0 +1,36 @@
+// C Implementation of Reference Counting Example
+// #include <stdlib.h>
+// #include <stdio.h>
+
+// typedef struct {
+//     int value;
+// } Data;
+
+// int main() {
+//     Data* data = malloc(sizeof(Data));
+//     data->value = 42;
+    
+//     Data* shared1 = data;
+//     Data* shared2 = data;
+    
+//     printf("Value: %d\n", shared1->value);
+//     printf("Value: %d\n", shared2->value);
+    
+//     free(data);
+//     return 0;
+// }
+
+#include "rc.hbs"
+#include "bishengc_safety.hbs"
+
+safe int main(void) {
+    Rc<int> rc1 = Rc<int>::new(42);
+    Rc<int> rc2 = rc1.clone();
+    
+    unsafe {
+        printf("Value: %d\n", *rc1.deref());
+        printf("Value: %d\n", *rc2.deref());
+    }
+    
+    return 0;
+}

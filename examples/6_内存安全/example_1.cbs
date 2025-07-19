@@ -1,0 +1,26 @@
+
+#include "bishengc_safety.hbs"
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct {
+    int value;
+    int* borrow pointer;  // Explicit borrowed pointer in Bisheng-C
+} Container;
+
+safe void Container::print(Container* borrow this) {
+    unsafe {
+        printf("Value: %d, Pointer: %d\n", this->value, *(this->pointer));
+    }
+}
+
+safe int main(void) {
+    int num = 42;
+    Container c = {
+        .value = 10,
+        .pointer = &mut num  // Explicit mutable borrow
+    };
+    
+    c.print();
+    return 0;
+}

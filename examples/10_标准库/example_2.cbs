@@ -1,0 +1,10 @@
+#include "string.hbs"
+#include <stdio.h>
+
+safe int main(void) {
+    unsafe {
+        String str = String::from("hello");
+        printf("%c\n", str.at(2)); // Safe bounds-checked access
+    }
+    return 0;
+}

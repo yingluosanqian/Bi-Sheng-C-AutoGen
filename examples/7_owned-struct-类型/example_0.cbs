@@ -1,0 +1,26 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include "bishengc_safety.hbs"
+
+owned struct Quaternion {
+public:
+    double x;
+    double y;
+    double z;
+    double w;
+    
+    void print(Quaternion *this) {
+        printf("Quaternion: x=%.2f, y=%.2f, z=%.2f, w=%.2f\n", 
+               this->x, this->y, this->z, this->w);
+    }
+    
+    ~Quaternion(Quaternion this) {
+        // No resources to free in this simple example
+    }
+};
+
+int main() {
+    Quaternion q = {.x = 1.0, .y = 2.0, .z = 3.0, .w = 4.0};
+    q.print();
+    return 0;
+}

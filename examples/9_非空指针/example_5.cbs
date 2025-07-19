@@ -1,0 +1,17 @@
+#include "bishengc_safety.hbs"
+#include <stdio.h>
+
+safe void swap(int *borrow _Nonnull a, int *borrow _Nonnull b) {
+    int tmp = *a;
+    *a = *b;
+    *b = tmp;
+}
+
+safe int main(void) {
+    int x = 5, y = 9;
+    swap(&mut x, &mut y);
+    unsafe {
+        printf("{result: x=%d, y=%d}\n", x, y);
+    }
+    return 0;
+}

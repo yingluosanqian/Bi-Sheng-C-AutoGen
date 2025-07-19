@@ -1,0 +1,23 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include "future.hbs"
+
+async int timeOut(int t) {
+    return t;
+}
+
+async int getData() {
+    int t = await timeOut(1000);
+    return t;
+}
+
+int main() {
+    trait Future<int>* future = getData();
+    struct PollResult<int> result = future->poll();
+    int value;
+    if (result.is_completed(&value)) {
+        printf("%d", value);
+    }
+    future->free();
+    return 0;
+}

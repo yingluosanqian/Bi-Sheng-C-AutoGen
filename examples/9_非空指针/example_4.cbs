@@ -1,0 +1,30 @@
+#include <stdio.h>
+#include "bishengc_safety.hbs"
+
+unsafe int* _Nullable find_in_array(int* arr, int size, int value) {
+    for (int i = 0; i < size; ++i) {
+        if (arr[i] == value) {
+            return &arr[i];
+        }
+    }
+    return nullptr;
+}
+
+safe int main(void) {
+    int numbers[] = {10, 20, 30, 40, 50};
+    
+    unsafe {
+        int* _Nullable found = find_in_array(numbers, 5, 30);
+        if (found != nullptr) {
+            printf("{found: %d}", *found);
+        }
+    }
+    
+    unsafe {
+        int* _Nullable found = find_in_array(numbers, 5, 99);
+        if (found == nullptr) {
+            printf("{not found}");
+        }
+    }
+    return 0;
+}

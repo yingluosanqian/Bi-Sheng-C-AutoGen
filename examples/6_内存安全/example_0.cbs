@@ -1,0 +1,20 @@
+#include "bishengc_safety.hbs"
+#include <stdio.h>
+#include <stdlib.h>
+
+safe T swap<T>(T *borrow a, T *borrow b) {
+    T temp = *a;
+    *a = *b;
+    *b = temp;
+    return temp;
+}
+
+safe int main(void) {
+    int a = 1, b = 2;
+    unsafe { printf("Before swap: a=%d, b=%d\n", a, b); }
+    int *borrow ptr_a = &mut a;
+    int *borrow ptr_b = &mut b;
+    swap(ptr_a, ptr_b);
+    unsafe { printf("After swap: a=%d, b=%d\n", a, b); }
+    return 0;
+}

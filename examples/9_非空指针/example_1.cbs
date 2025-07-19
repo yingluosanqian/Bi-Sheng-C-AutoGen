@@ -1,0 +1,15 @@
+#include "bishengc_safety.hbs" // BiShengC 语言提供的头文件，用于安全地进行内存分配及释放
+
+int * owned takes_and_gives_back(int * owned p) {
+    return p;
+}
+
+safe void test(void) {
+    int * owned p = safe_malloc(2); // 通过提供的 safe_malloc 申请一块大小为 sizeof(int) 的堆内存，并将值设置为2
+    int * owned q = p; // 将 p 指向的堆内存转移给 q，后续不可再使用 p 访问这块内存，否则编译报错
+    unsafe {
+    q = takes_and_gives_back(q); // 通过函数参数转移走 q 的所有权，但通过函数返回值归还所有权
+        safe_free((void * owned)q); // 在 q 的作用域结束前调用 safe_free 安全释放堆内存，此处不释放则会报内存泄漏错误
+    }
+    return;
+}

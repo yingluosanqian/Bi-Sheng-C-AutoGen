@@ -1,0 +1,34 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <bsc_type_traits.hbs>
+
+void print_integer_info<T>(T value) {
+    if constexpr (is_signed<T>()) {
+        if constexpr (is_same<T, int>()) {
+            printf("Value: %d, Size: %zu bytes, Type: signed integer\n", value, sizeof(T));
+        } else if constexpr (is_same<T, short>()) {
+            printf("Value: %d, Size: %zu bytes, Type: short integer\n", value, sizeof(T));
+        } else if constexpr (is_same<T, char>()) {
+            printf("Value: %d, Size: %zu bytes, Type: character\n", value, sizeof(T));
+        }
+    } else {
+        if constexpr (is_same<T, unsigned int>()) {
+            printf("Value: %u, Size: %zu bytes, Type: unsigned integer\n", value, sizeof(T));
+        }
+    }
+}
+
+int main() {
+    int a = 42;
+    unsigned int b = 100;
+    char c = 65;
+    short d = 1000;
+    
+    print_integer_info<int>(a);
+    print_integer_info<unsigned int>(b);
+    print_integer_info<char>(c);
+    print_integer_info<short>(d);
+    
+    return 0;
+}
