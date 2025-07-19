@@ -1,11 +1,8 @@
 
 
-# Bi-Sheng-C AutoGen
+# Bi-Sheng-C Auto-Trans
 
-Bi-Sheng-C AutoGen 是一个使用大模型自动生成包含 Bi-Sheng-C 语言特性的工具，它的功能包含：
-
-* 生成一对功能相同的 `.c` 和 `.cbs` 代码；
-* 将 `.c` 代码翻译到 `.cbs` 代码；（TODO）
+Bi-Sheng-C Auto-Trans 是一个使用大模型自动将 C 代码翻译为 BiSheng-C 代码的工具。
 
 ## 环境配置
 
@@ -59,62 +56,10 @@ client = OpenAI(api_key=os.environ["DEEPSEEK_API_KEY"],
 model = "deepseek-chat" if model_version == "v3" else "deepseek-chat"
 ```
 
-## 使用前
-
-先运行如下命令，功能是：
-
-* Bi-Sheng-C 的官方文档拆分为若干个一级子文档，存放于 `docs/` 目录下
-
-* 对于特定 `feature`，生成数量为 `num` 的程序功能描述，生成的程序功能描述将被放在 `program_desc/${feature}.json` 中。
-
-``` py
-python preprocess.py --model dpsk-v3 --feature 9_非空指针 --num 10
-```
-
-feature 必须是以下内容之一：
-
-``` txt
-0_成员函数
-1_泛型
-2_常量计算
-3_trait
-4_无栈协程
-6_内存安全
-7_owned-struct-类型
-8_运算符重载
-9_非空指针
-10_标准库
-```
-
-## 使用
-
-### 批量生成代码
-
-一个简单的例子，它将根据 `program_desc/${feature}.json` 中的程序功能描述生成功能及输出完全一致的 C 代码和 CBS 代码，后者包含了 Bi-Sheng-C 的 `成员函数` 语言特性。
-
-可以将 `--dir` 后面的参数替换为 `const.py` 中的其他元素
-
-``` py
-python main.py --model dpsk-v3 generate --amount many --dir 9_非空指针
-```
- 
-还可以使用 `all` 参数一次性生成每个语言特性的程序。
-
-``` py
-python main.py --model dpsk-v3 generate --amount all
-```
-
-### 验证代码
-
-使用以下命令可以验证所有 `programs/${feature}/` 目录下的代码对是否都能够通过编译且输出结果一致，通过测试的程序将被保存到 `passed_programs/${feature}/` 目录下。 
-
-``` py
-python validate.py --feature 9_非空指针
-# 将输出 dump 出来便于检查
-python validate.py --feature 9_非空指针 > debug.log 2>&1
-```
-
-### 翻译代码
+### 3. LangSmith-API-KEY 配置
 
 TODO.
 
+## 使用
+
+TODO.

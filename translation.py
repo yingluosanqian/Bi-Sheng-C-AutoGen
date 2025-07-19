@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 
 import utils
 from utils import LangSubFeature, load_txt, save_txt
-from valiadate import validate
+from valiadation import validate
 from typing import Optional
 import argparse
 from tqdm import tqdm
