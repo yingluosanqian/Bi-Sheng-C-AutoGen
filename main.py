@@ -168,12 +168,72 @@ def build_prompt_memory_safety(
   feature_content: str,
   program_description: str,
 ) -> tuple[str, str]:
-  # TODO: Implement a more specific prompt for memory safety
-  # i.e. do not use the generic prompt
-  return build_prompt_generic(
-    feature_content=feature_content,
-    program_description=program_description,
-  )
+  '''
+  feature_content: The content of the feature documentation.
+  program_description: A description of the program to be generated.
+  Returns a tuple of system and user prompts.
+  '''
+
+  # One-shot example
+  one_shot_example = "[\n"
+  "  {\n"
+  "    \"description\": \"...\",\n"
+  "    \"c_code\": \"...\",\n"
+  "    \"bisheng_c_code\": \"...\n"
+  "  }\n"
+  "]\n"
+
+  code_example_0 = Path('6_safety_example_0.cbs').read_text(encoding='utf-8')
+  code_example_1 = Path('6_safety_example_1.cbs').read_text(encoding='utf-8')
+
+  # System prompt
+  system_prompt = "You are an expert in both C and Bisheng-C programming languages. " \
+      "Bisheng C adopts a different strategy. It incorporates many enhanced designs based on the " \
+      "C language, such as stronger memory safety features and built-in support for concurrency. " \
+      "Moreover, these features can be incrementally adopted in existing codebases without requiring " \
+      "a full rewrite of legacy code. It can be said that Bisheng C is a superset of the C language."
+
+  # User prompt
+  user_prompt = f"""
+  You need to write two simple (as simple as possible) programs that demonstrate how below features described above make Bisheng-C different from standard C.
+
+  Requirements:
+  - {program_description}
+  - Return the result in JSON format, containing three fields: description, c_code, and bisheng_c_code.
+  - Note: The outputs of both programs must be identical. Ensure there are no extra outputs (such as additional logs, debug info, or unintended formatting) in either program.
+  
+  Notice:
+  - You also need to use 'include<>' statements in the bisheng-C code, such as <stdio.h> and <stdlib.h>.
+  - The member function of an object does not need to explicitly pass the object's own reference as the first parameter, but this parameter must be named this. For example:
+    'bool struct CircularBuffer<T>::pop(struct CircularBuffer<T> *this, T *item)' When calling it, you can simply use `int_buffer.pop(&val)` instead of `int_buffer.pop(&int_buffer, &val)`. Some other example:
+    - It is 'future->free()' rather than 'future->free(future)'.
+    - It is 'future->poll()' rather than 'future->poll(future)'.
+    - It is 'result.is_completed(&value)' rather than 'result.is_completed(&result, &value)'.
+  - Cast to (void * owned) before passing a pointer to a function that takes an owned pointer, such as 'safe_malloc<Type>(...)', 'safe_free', etc. For example:
+    - safe_free((void * owned)q);
+  - Include "bishengc_safety.hbs" before use "safe_malloc", "safe_free", etc. in Bisheng-C code.
+  - No need to set pointer to NULL after the ownership transfer, such as 'q = NULL;'. In Bisheng-C, the ownership transfer is implicit and does not require explicit nullification.
+  - You need to include <stdlib.h> before using the 'async' keyword if you use it.
+  - Bi-Sheng-C has added some header files with the .hbs extension, but do not rename the original C header files to .hbs.
+  - There is no bool type in C, so you can use int instead. In Bisheng-C, you can use _Bool type.
+  - 'async' can not be used to decorate 'main' function in Bisheng-C.
+  - Use 'safe int main(void)' instead of 'safe int main()' when use sage to decorate main function in Bisheng-C.
+  - 'printf' function should be placed in unsafe block, if you use safe to decorate main function in Bisheng-C.
+  - A function without safe decorator is regarded as unsafe function in Bisheng-C, so you can not put them in safe block.
+  - 'i++' operator is forbidden in the safe zone, use 'i=i+1' instead.
+
+  {one_shot_example}
+
+  Code Example 0:
+  {code_example_0}
+
+  Code Example 1:
+  {code_example_1}
+
+  Below is a documentation excerpt describing some features of Bisheng-C:
+    {feature_content}
+  """
+  return system_prompt, user_prompt
 
 
 def build_prompt_owned_struct(
@@ -294,7 +354,7 @@ def main():
         programs_desc=desc,
       )
     elif args.amount == 'all':
-      from const import lang_sub_ft
+      from utils import lang_sub_ft
       for sub_ft in lang_sub_ft:
         dir_name = sub_ft
         programs_desc = Path(f'program_desc/{dir_name}.json')
