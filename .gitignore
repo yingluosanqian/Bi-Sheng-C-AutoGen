@@ -1,16 +1,7 @@
 
 .vscode
-# *[0-9]*.md
-*.h
-# *.c
 *.txt
-test/**/*.cbs
 *.pyc
-a.out
-*.zip
-c_dataset
-*.json
-# c\_[0-9]*
-cbs\_[0-9]*
-binary_temp
+generated_code/
+results/
 *.log

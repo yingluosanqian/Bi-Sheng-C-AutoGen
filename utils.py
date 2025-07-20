@@ -2,20 +2,7 @@
 from pathlib import Path
 from enum import Enum
 from typing import Optional
-
-lang_sub_ft = (
-  "0_成员函数",
-  "1_泛型",
-  "2_常量计算",
-  "3_trait",
-  "4_无栈协程",
-  # "5_源源变换",
-  "6_内存安全",
-  "7_owned-struct-类型",
-  "8_运算符重载",
-  "9_非空指针",
-  "10_标准库",
-)
+import os
 
 #############################################################################
 # Text Area
@@ -151,6 +138,42 @@ def get_codes_fp(file_path: Path, suffix: list[CodeSuffix]) -> list[Path]:
 # Data Area
 #############################################################################
 
+doc_dir = Path("docs")
+prompt_examples_dir = Path("prompt_examples")
+test_data_dir = Path("test-data")
+generated_code_dir = Path("results")
+
+worker_count = os.cpu_count() or 1  # Default to 1 if os.cpu_count() returns None
+
+RED = "\033[31m"
+GREEN = "\033[32m"
+YELLOW = "\033[33m"
+BLUE = "\033[34m"
+RESET = "\033[0m"  # 重置颜色
+
+ClangArgs = [
+  f"-I{os.environ['LLVM_SOURCE']}/libcbs/src/string",
+  f"-I{os.environ['LLVM_SOURCE']}/libcbs/src/hash",
+  f"-I{os.environ['LLVM_SOURCE']}/libcbs/src/raw_vec",
+  f"-I{os.environ['LLVM_SOURCE']}/libcbs/src/cell",
+  f"-I{os.environ['LLVM_SOURCE']}/libcbs/src/string",
+  f"-I{os.environ['LLVM_SOURCE']}/libcbs/src/raw_table",
+  f"-I{os.environ['LLVM_SOURCE']}/libcbs/src/vec",
+  f"-I{os.environ['LLVM_SOURCE']}/libcbs/src/map",
+  f"-I{os.environ['LLVM_SOURCE']}/libcbs/src/rc",
+  f"-I{os.environ['LLVM_SOURCE']}/libcbs/src/result",
+  f"-I{os.environ['LLVM_SOURCE']}/libcbs/src/list",
+  f"-I{os.environ['LLVM_SOURCE']}/libcbs/src/option",
+  f"-I{os.environ['LLVM_SOURCE']}/libcbs/src/bishengc_safety",
+  f"-I{os.environ['LLVM_SOURCE']}/libcbs/src/scheduler",
+  f"{os.environ['LLVM_SOURCE']}/libcbs/src/hash/sip.cbs",
+  f"{os.environ['LLVM_SOURCE']}/libcbs/src/string/string.cbs",
+  f"{os.environ['LLVM_SOURCE']}/libcbs/src/raw_table/raw_table.cbs",
+  f"{os.environ['LLVM_SOURCE']}/libcbs/src/bishengc_safety/bishengc_safety.cbs",
+  f"{os.environ['LLVM_SOURCE']}/libcbs/src/scheduler/scheduler.cbs",
+]
+
+
 class ClassLSFMeta(type):
   def __str__(cls):
     return getattr(cls, 'name')
@@ -167,18 +190,18 @@ class ClassLSFMeta(type):
 
   @property
   def test_programs_dir(cls):
-    return Path(f"test_programs/{cls.index}_{cls.name}")
+    return test_data_dir / f"{cls.index}_{cls.name}"
 
   @property
   def filepath(cls):
-    return Path(f"docs/{cls.index}_{cls.name}.md")
+    return doc_dir / f"{cls.index}_{cls.name}.md"
 
   def test_programs_fp(cls, suffix: list[CodeSuffix]) -> list[Path]:
     return get_codes_fp(cls.test_programs_dir, suffix)
 
   @property
   def examples_dir(cls):
-    return Path(f"examples/{cls.index}_{cls.name}")
+    return prompt_examples_dir / f"{cls.index}_{cls.name}"
 
   @property
   def examples_code(cls) -> Optional[list[str]]:
