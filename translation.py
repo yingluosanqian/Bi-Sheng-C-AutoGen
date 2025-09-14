@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 
 import utils
 from utils import LangSubFeature, load_txt, save_txt
-from valiadation import validate
+from validation import validate
 from typing import Optional
 import argparse
 from tqdm import tqdm
@@ -85,12 +85,21 @@ def translate_single(
   )
   if print_flag:
     print(f"{utils.BLUE}Output saved to: {bsc_code_fp}{utils.RESET}")
+  # Rename output file based on validation result
   if validate(c_code_fp, bsc_code_fp):
+    suffix = "_success"
+    new_bsc_code_fp = bsc_code_fp.with_name(f"{bsc_code_fp.stem}{suffix}.cbs")
+    os.rename(bsc_code_fp, new_bsc_code_fp)
+    bsc_code_fp = new_bsc_code_fp
     if print_flag:
       print(
         f"{utils.GREEN}[Success] Validation successful: C code and BiSheng-C code outputs match.{utils.RESET}")
     return True
   else:
+    suffix = "_fail"
+    new_bsc_code_fp = bsc_code_fp.with_name(f"{bsc_code_fp.stem}{suffix}.cbs")
+    os.rename(bsc_code_fp, new_bsc_code_fp)
+    bsc_code_fp = new_bsc_code_fp
     if print_flag:
       print(
         f"{utils.RED}[Failed] Validation failed: C code and BiSheng-C code outputs do not match.{utils.RESET}")

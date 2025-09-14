@@ -16,7 +16,7 @@ declare -a dirs=(
 for item in "${dirs[@]}"; do
   dir="${item%%:*}"
   flag="${item##*:}"
-  cmd="python translation.py -m batch -i "$dir" -f "$flag""
+  cmd="python translation.py -m batch -i "$dir" -f "$flag" -o "results/$flag""
   echo "Execute cmd: ${cmd}"
   ${cmd}
 done

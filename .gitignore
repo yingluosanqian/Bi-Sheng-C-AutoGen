@@ -2,6 +2,6 @@
 .vscode
 *.txt
 *.pyc
-generated_code/
+binary_temp/
 results/
 *.log
